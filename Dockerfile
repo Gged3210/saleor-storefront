@@ -9,8 +9,18 @@ WORKDIR /app
 # Get PNPM version from package.json
 RUN export PNPM_VERSION=$(cat package.json | jq '.engines.pnpm' | sed -E 's/[^0-9.]//g')
 
+# Enable Corepack to manage package managers
+RUN corepack enable
+
+# Set the PNPM version defined in your package.json
+RUN corepack prepare pnpm@9.6.0 --activate && corepack pnpm --version
+
+
+# Install dependencies with Yarn via Corepack
+RUN corepack prepare yarn@stable --activate
+
 COPY package.json pnpm-lock.yaml ./
-RUN yarn global add pnpm@$PNPM_VERSION
+# RUN yarn global add pnpm@$PNPM_VERSION
 RUN pnpm i --frozen-lockfile --prefer-offline
 
 # Rebuild the source code only when needed
@@ -32,8 +42,11 @@ ENV NEXT_PUBLIC_STOREFRONT_URL=${NEXT_PUBLIC_STOREFRONT_URL}
 
 # Get PNPM version from package.json
 RUN export PNPM_VERSION=$(cat package.json | jq '.engines.pnpm' | sed -E 's/[^0-9.]//g')
-RUN yarn global add pnpm@$PNPM_VERSION
-
+# RUN yarn global add pnpm@$PNPM_VERSION
+# Enable Corepack to manage package managers
+RUN corepack enable
+# Prepare and activate the correct version of PNPM (based on your version requirements)
+RUN corepack prepare pnpm@9.6.0 --activate && corepack pnpm --version
 RUN pnpm build
 
 # Production image, copy all the files and run next
